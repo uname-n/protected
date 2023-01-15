@@ -22,3 +22,21 @@ with open("example.pkl", "rb") as file:
 print(new_ex.get_data("a"), new_ex.get_data("b"), new_ex.get_data("c"))
 
 ```
+
+```python
+from protected import Protected
+
+class Example (Protected):
+    secret = "secretsecretigotasecret"
+    data = { "a":1, "b":2, "c":3 }
+    def get_data(self, key:str) -> int: return self.data[key]
+
+ex = Example()
+
+print(ex.get_data("a"), ex.get_data("b"), ex.get_data("c"))
+
+fernet_key, digital_signature = ex.protected_dump("example.pkl")
+new_ex = Example.protected_load(fernet_key, digital_signature, "example.pkl")
+
+print(new_ex.get_data("a"), new_ex.get_data("b"), new_ex.get_data("c"))
+```

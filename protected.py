@@ -116,3 +116,45 @@ def load(fernet_key:bytes, digital_signature:str, file:BinaryIO) -> Any:
         >>>     obj = protected.load(fernet_key, digital_signature, file)
     """
     return decrypt(fernet_key, digital_signature, file.read())
+
+class Protected:
+    """ used to extend a class with functions to easily load and dump itself.
+
+        funcs:
+            protected_load: read encrypted class from binary io and load it
+            protected_dump: encrypt class and write it to binary io
+    """
+    def protected_load(fernet_key:bytes, digital_signature:str, file:str or BinaryIO) -> Any:
+        """ read encrypted class from binary io and load it.
+
+            args:
+                fernet_key (bytes): fernet key that was used for encryption
+                digital_signature (str): expected cryptographic hash of the encrypted class
+                file (str or binary_io): io to read encrypted class from
+
+            return:
+                obj (any): decypted class
+
+            >>> Any = Any.protected_load(fernet_key, digital_signature, file)
+        """
+        with open(file, "rb") if type(file) == str else file as file:
+            return load(fernet_key=fernet_key, digital_signature=digital_signature, file=file)
+        
+    def protected_dump(self, file:str or BinaryIO, fernet_key:bytes=None) -> Tuple[bytes, str]:
+        """ encrypt class and write it to binary io. generates fernet key if not provided.
+
+            args:
+                file (str or binary_io): io to read encrypted class from
+                fernet_key (bytes): fernet key that was used for encryption (default: none)
+
+            return:
+                fernet_key (bytes): fernet key that was used for encryption
+                digital_signature (str): cryptographic hash of the encrypted class
+
+            >>> fernet_key, digital_signature = Any.protected_dump(file)
+        """
+        if not fernet_key: fernet_key = generate_fernet_key()
+        with open(file, "wb") if type(file) == str else file as file: 
+            digital_signature = dump(fernet_key, self, file)
+        return fernet_key, digital_signature
+        
